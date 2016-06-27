@@ -2,6 +2,11 @@
 
 A go-based static file web server for serving files from a directory on macOS, Windows, or Linux.
 
+## Install
+
+- [Download the zero-install binary](https://github.com/schmich/sfs/releases) to a directory on your `PATH`; or
+- `go get -u github.com/schmich/sfs/... && go install github.com/schmich/sfs/...`
+
 ## Usage
 
 ```
