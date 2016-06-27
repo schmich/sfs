@@ -11,6 +11,7 @@ import (
 
 func main() {
   app := cli.App("sfs", "Static file server - https://github.com/schmich/sfs")
+  app.Version("v version", "sfs " + Version)
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
