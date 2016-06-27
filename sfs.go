@@ -27,8 +27,9 @@ func main() {
 
     listen := *iface + ":" + strconv.Itoa(*port)
 
-    fmt.Printf(">>> Serving %s\n", *dir)
-    fmt.Printf(">>> Listening on %s\n", listen)
+    fmt.Printf(">> Serving %s\n", *dir)
+    fmt.Printf(">> Listening on %s\n", listen)
+    fmt.Println(">> Ctrl+C to stop")
 
     server := http.FileServer(http.Dir(*dir))
     panic(http.ListenAndServe(listen, server))
