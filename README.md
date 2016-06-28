@@ -18,7 +18,8 @@ Options:
   -v, --version                          Show the version and exit
   -p, --port=8080                        Listening port
   -i, --iface, --interface="127.0.0.1"   Listening interface
-  -d, --dir, --directory="."             Root directory to serve
+  -d, --dir, --directory="."             Directory to serve
+  -B, --no-browser=false                 Do not launch browser
 ```
 
 Start a web server for files in the current directory:
