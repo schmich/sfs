@@ -7,6 +7,7 @@ import (
   "net/http"
   "path/filepath"
   "github.com/jawher/mow.cli"
+  "github.com/skratchdot/open-golang/open"
 )
 
 func main() {
@@ -15,7 +16,8 @@ func main() {
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
-  dir := app.StringOpt("d dir directory", ".", "Root directory to serve")
+  dir := app.StringOpt("d dir directory", ".", "Directory to serve")
+  noBrowser := app.BoolOpt("B no-browser", false, "Do not launch browser")
 
   var err error
 
@@ -25,11 +27,17 @@ func main() {
       panic(err)
     }
 
-    listen := *iface + ":" + strconv.Itoa(*port)
+    portPart := ":" + strconv.Itoa(*port)
+    listen := *iface + portPart
 
     fmt.Printf(">> Serving %s\n", *dir)
     fmt.Printf(">> Listening on %s\n", listen)
     fmt.Println(">> Ctrl+C to stop")
+
+    if !*noBrowser {
+      url := "http://127.0.0.1" + portPart
+      open.Start(url)
+    }
 
     server := http.FileServer(http.Dir(*dir))
     panic(http.ListenAndServe(listen, server))
