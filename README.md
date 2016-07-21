@@ -20,6 +20,7 @@ Options:
   -v, --version                          Show the version and exit
   -p, --port=8080                        Listening port
   -i, --iface, --interface="127.0.0.1"   Listening interface
+  -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -B, --no-browser=false                 Do not launch browser
 ```
@@ -40,6 +41,12 @@ Allow external connections:
 
 ```
 > sfs -i 0.0.0.0
+```
+
+Alternatively:
+
+```
+> sfs -g
 ```
 
 Serve files from another directory:
