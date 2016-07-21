@@ -16,8 +16,8 @@ func main() {
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
-  dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
+  dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   noBrowser := app.BoolOpt("B no-browser", false, "Do not launch browser")
 
   app.Action = func () {
