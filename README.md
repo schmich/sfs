@@ -73,7 +73,7 @@ Log format:
 
 ## Caching
 
-By default, `sfs` modifies incoming and outgoing cache headers (`Cache-Control`, `If-None-Match`, `If-Modified-Since`) to ensure no caching occurs. To allow caching, this can be disabled with:
+By default, `sfs` modifies incoming and outgoing cache headers (`Cache-Control`, `If-None-Match`, `If-Modified-Since`, `Last-Modified`, `ETag`) to ensure no caching occurs. To allow caching, this can be disabled with:
 
 ```
 sfs -c

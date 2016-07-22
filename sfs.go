@@ -90,13 +90,32 @@ func TraceServer(h http.Handler, log string) http.Handler {
   })
 }
 
+type NoCacheResponseWriter struct {
+  impl http.ResponseWriter
+}
+
+func (writer *NoCacheResponseWriter) Header() http.Header {
+  header := writer.impl.Header()
+  header.Set("Cache-Control", "private, max-age=0, no-cache")
+  header.Del("Last-Modified")
+  header.Del("ETag")
+  return header
+}
+
+func (writer *NoCacheResponseWriter) Write(bytes []byte) (int, error) {
+  return writer.impl.Write(bytes)
+}
+
+func (writer *NoCacheResponseWriter) WriteHeader(statusCode int) {
+  writer.impl.WriteHeader(statusCode)
+}
+
 func NoCacheServer(h http.Handler) http.Handler {
   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Cache-Control", "private, max-age=0, no-cache")
     r.Header.Set("Cache-Control", "no-cache")
     r.Header.Del("If-Modified-Since")
     r.Header.Del("If-None-Match")
-    h.ServeHTTP(w, r)
+    h.ServeHTTP(&NoCacheResponseWriter{w}, r)
   })
 }
 
