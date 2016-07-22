@@ -27,10 +27,10 @@ Options:
   -c, --cache=false                      Allow cached responses
 ```
 
-Start a web server for files in the current directory:
+Start a web server for files in the current directory and launch the default browser:
 
 ```
-sfs
+sfs -b
 ```
 
 Specify a port:
