@@ -23,36 +23,43 @@ Options:
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -B, --no-browser=false                 Do not launch browser
+  -c, --cache=false                      Allow cached responses
 ```
 
 Start a web server for files in the current directory:
 
 ```
-> sfs
+sfs
 ```
 
 Specify a port:
 
 ```
-> sfs -p 777
+sfs -p 777
 ```
 
 Allow external connections:
 
 ```
-> sfs -i 0.0.0.0
+sfs -i 0.0.0.0
 ```
 
 Alternatively:
 
 ```
-> sfs -g
+sfs -g
 ```
 
 Serve files from another directory:
 
 ```
-> sfs -d ../bloop
+sfs -d ../bloop
+```
+
+By default, `sfs` modifies incoming and outgoing cache headers (`Cache-Control`, `If-None-Match`, `If-Modified-Since`) to ensure no caching occurs. This can be disabled with:
+
+```
+sfs -c
 ```
 
 ## License
