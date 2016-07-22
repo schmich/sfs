@@ -127,7 +127,7 @@ func main() {
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
-  noBrowser := app.BoolOpt("B no-browser", false, "Do not launch browser")
+  browser := app.BoolOpt("b browser", false, "Launch web browser")
   trace := app.StringOpt("t trace", "", "Trace format (%i %t %m %u %s %b %a)")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
@@ -159,7 +159,7 @@ func main() {
     fmt.Printf(">> Listening on %s\n", listen)
     fmt.Println(">> Ctrl+C to stop")
 
-    if !*noBrowser {
+    if *browser {
       url := "http://127.0.0.1" + portPart
       open.Start(url)
     }

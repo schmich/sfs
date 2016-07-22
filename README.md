@@ -22,7 +22,7 @@ Options:
   -i, --iface, --interface="127.0.0.1"   Listening interface
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
-  -B, --no-browser=false                 Do not launch browser
+  -b, --browser=false                    Launch web browser
   -t, --trace=""                         Trace format (%i %t %m %u %s %b %a)
   -c, --cache=false                      Allow cached responses
 ```
