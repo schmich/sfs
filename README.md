@@ -23,7 +23,7 @@ Options:
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -B, --no-browser=false                 Do not launch browser
-  -t, --trace=""                         Trace and log requests
+  -t, --trace=""                         Trace format (%i %t %m %u %s %b %a)
   -c, --cache=false                      Allow cached responses
 ```
 

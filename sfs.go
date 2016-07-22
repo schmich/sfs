@@ -109,7 +109,7 @@ func main() {
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   noBrowser := app.BoolOpt("B no-browser", false, "Do not launch browser")
-  trace := app.StringOpt("t trace", "", "Trace requests")
+  trace := app.StringOpt("t trace", "", "Trace format (%i %t %m %u %s %b %a)")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
   app.Action = func () {
