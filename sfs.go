@@ -3,14 +3,94 @@ package main
 import (
   "os"
   "fmt"
+  "time"
   "strconv"
+  "strings"
+  "regexp"
   "net/http"
   "path/filepath"
   "github.com/jawher/mow.cli"
   "github.com/skratchdot/open-golang/open"
 )
 
-func NoCache(h http.Handler) http.Handler {
+type TraceResponseWriter struct {
+  impl http.ResponseWriter
+  bytesWritten int
+  statusCode int
+}
+
+func NewTraceResponseWriter(writer http.ResponseWriter) *TraceResponseWriter {
+  return &TraceResponseWriter{
+    impl: writer,
+    bytesWritten: 0,
+    statusCode: 200,
+  }
+}
+
+func (writer *TraceResponseWriter) Header() http.Header {
+  return writer.impl.Header()
+}
+
+func (writer *TraceResponseWriter) Write(bytes []byte) (int, error) {
+  writer.bytesWritten += len(bytes)
+  return writer.impl.Write(bytes)
+}
+
+func (writer *TraceResponseWriter) WriteHeader(statusCode int) {
+  writer.statusCode = statusCode
+  writer.impl.WriteHeader(statusCode)
+}
+
+func formatSize(bytes int) string {
+  if bytes < 1000 {
+    return strconv.Itoa(bytes)
+  } else if bytes < 1000000 {
+    return fmt.Sprintf("%.2fK", float32(bytes) / 1000)
+  } else {
+    return fmt.Sprintf("%.2fM", float32(bytes) / 1000000)
+  }
+}
+
+func TraceServer(h http.Handler, log string) http.Handler {
+  formatter, _ := regexp.Compile("%.")
+
+  return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+    traceWriter := NewTraceResponseWriter(w)
+    h.ServeHTTP(traceWriter, r)
+
+    ip := r.RemoteAddr
+    if i := strings.Index(ip, ":"); i >= 0 {
+      ip = ip[:i]
+    }
+
+    line := string(formatter.ReplaceAllFunc([]byte(log), func(match []byte) []byte {
+      switch string(match[1]) {
+      case "i":
+        return []byte(ip)
+      case "t":
+        return []byte(time.Now().Format("2/Jan/2006:15:04:05 -0700"))
+      case "m":
+        return []byte(r.Method)
+      case "u":
+        return []byte(r.URL.String())
+      case "s":
+        return []byte(strconv.Itoa(traceWriter.statusCode))
+      case "b":
+        return []byte(formatSize(traceWriter.bytesWritten))
+      case "a":
+        return []byte(r.Header.Get("User-Agent"))
+      case "%":
+        return []byte("%")
+      default:
+        return match
+      }
+    }))
+
+    fmt.Println(line)
+  })
+}
+
+func NoCacheServer(h http.Handler) http.Handler {
   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Cache-Control", "private, max-age=0, no-cache")
     r.Header.Set("Cache-Control", "no-cache")
@@ -29,6 +109,7 @@ func main() {
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   noBrowser := app.BoolOpt("B no-browser", false, "Do not launch browser")
+  trace := app.StringOpt("t trace", "", "Trace requests")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
   app.Action = func () {
@@ -48,7 +129,11 @@ func main() {
 
     server := http.FileServer(http.Dir(*dir))
     if !*cache {
-      server = NoCache(server)
+      server = NoCacheServer(server)
+    }
+
+    if strings.TrimSpace(*trace) != "" {
+      server = TraceServer(server, *trace)
     }
 
     fmt.Printf(">> Serving %s\n", *dir)
