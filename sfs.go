@@ -15,30 +15,30 @@ import (
   "github.com/mh-cbon/gssc"
 )
 
-type TraceResponseWriter struct {
+type LogResponseWriter struct {
   impl http.ResponseWriter
   bytesWritten int
   statusCode int
 }
 
-func NewTraceResponseWriter(writer http.ResponseWriter) *TraceResponseWriter {
-  return &TraceResponseWriter{
+func NewLogResponseWriter(writer http.ResponseWriter) *LogResponseWriter {
+  return &LogResponseWriter{
     impl: writer,
     bytesWritten: 0,
     statusCode: 200,
   }
 }
 
-func (writer *TraceResponseWriter) Header() http.Header {
+func (writer *LogResponseWriter) Header() http.Header {
   return writer.impl.Header()
 }
 
-func (writer *TraceResponseWriter) Write(bytes []byte) (int, error) {
+func (writer *LogResponseWriter) Write(bytes []byte) (int, error) {
   writer.bytesWritten += len(bytes)
   return writer.impl.Write(bytes)
 }
 
-func (writer *TraceResponseWriter) WriteHeader(statusCode int) {
+func (writer *LogResponseWriter) WriteHeader(statusCode int) {
   writer.statusCode = statusCode
   writer.impl.WriteHeader(statusCode)
 }
@@ -53,12 +53,12 @@ func formatSize(bytes int) string {
   }
 }
 
-func TraceServer(h http.Handler, log string) http.Handler {
+func LogServer(h http.Handler, log string) http.Handler {
   formatter, _ := regexp.Compile("%.")
 
   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-    traceWriter := NewTraceResponseWriter(w)
-    h.ServeHTTP(traceWriter, r)
+    logWriter := NewLogResponseWriter(w)
+    h.ServeHTTP(logWriter, r)
 
     ip := r.RemoteAddr
     if i := strings.Index(ip, ":"); i >= 0 {
@@ -76,9 +76,9 @@ func TraceServer(h http.Handler, log string) http.Handler {
       case "u":
         return []byte(r.URL.String())
       case "s":
-        return []byte(strconv.Itoa(traceWriter.statusCode))
+        return []byte(strconv.Itoa(logWriter.statusCode))
       case "b":
-        return []byte(formatSize(traceWriter.bytesWritten))
+        return []byte(formatSize(logWriter.bytesWritten))
       case "a":
         return []byte(r.Header.Get("User-Agent"))
       case "%":
@@ -130,7 +130,7 @@ func main() {
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   browser := app.BoolOpt("b browser", false, "Launch web browser")
-  trace := app.StringOpt("t trace", "", "Trace format (%i %t %m %u %s %b %a)")
+  log := app.StringOpt("l log", "", "Log format (%i %t %m %u %s %b %a)")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
   app.Version("v version", "sfs " + Version)
@@ -155,8 +155,8 @@ func main() {
       handler = NoCacheServer(handler)
     }
 
-    if strings.TrimSpace(*trace) != "" {
-      handler = TraceServer(handler, *trace)
+    if strings.TrimSpace(*log) != "" {
+      handler = LogServer(handler, *log)
     }
 
     protocol := "HTTP"
