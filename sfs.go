@@ -8,9 +8,11 @@ import (
   "strings"
   "regexp"
   "net/http"
+  "crypto/tls"
   "path/filepath"
   "github.com/jawher/mow.cli"
   "github.com/skratchdot/open-golang/open"
+  "github.com/mh-cbon/gssc"
 )
 
 type TraceResponseWriter struct {
@@ -121,15 +123,17 @@ func NoCacheServer(h http.Handler) http.Handler {
 
 func main() {
   app := cli.App("sfs", "Static file server - https://github.com/schmich/sfs")
-  app.Version("v version", "sfs " + Version)
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
+  secure := app.BoolOpt("s secure", false, "Serve via HTTPS with self-signed TLS certificate")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   browser := app.BoolOpt("b browser", false, "Launch web browser")
   trace := app.StringOpt("t trace", "", "Trace format (%i %t %m %u %s %b %a)")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
+
+  app.Version("v version", "sfs " + Version)
 
   app.Action = func () {
     var err error
@@ -146,25 +150,43 @@ func main() {
     portPart := ":" + strconv.Itoa(*port)
     listen := *iface + portPart
 
-    server := http.FileServer(http.Dir(*dir))
+    handler := http.FileServer(http.Dir(*dir))
     if !*cache {
-      server = NoCacheServer(server)
+      handler = NoCacheServer(handler)
     }
 
     if strings.TrimSpace(*trace) != "" {
-      server = TraceServer(server, *trace)
+      handler = TraceServer(handler, *trace)
+    }
+
+    protocol := "HTTP"
+    if *secure {
+      protocol = "HTTPS"
     }
 
     fmt.Printf(">> Serving %s\n", *dir)
-    fmt.Printf(">> Listening on %s\n", listen)
-    fmt.Println(">> Ctrl+C to stop")
+    fmt.Printf(">> Listening on %s (%s)\n", listen, protocol)
+    fmt.Printf(">> Ctrl+C to stop\n")
 
     if *browser {
       url := "http://127.0.0.1" + portPart
       open.Start(url)
     }
 
-    panic(http.ListenAndServe(listen, server))
+    server := &http.Server{
+      Addr: listen,
+      Handler: handler,
+    }
+
+    if *secure {
+      server.TLSConfig = &tls.Config{
+        InsecureSkipVerify: true,
+        GetCertificate: gssc.GetCertificate(*iface),
+      }
+      panic(server.ListenAndServeTLS("", ""))
+    } else {
+      panic(server.ListenAndServe())
+    }
   }
 
   app.Run(os.Args)
