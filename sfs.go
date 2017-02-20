@@ -122,15 +122,16 @@ func NoCacheServer(h http.Handler) http.Handler {
 }
 
 func main() {
-  app := cli.App("sfs", "Static file server - https://github.com/schmich/sfs")
+  app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
-  secure := app.BoolOpt("s secure", false, "Serve via HTTPS with self-signed TLS certificate")
+  secure := app.BoolOpt("s secure", false, "Enable HTTPS with self-signed TLS certificate")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   browser := app.BoolOpt("b browser", false, "Launch web browser")
-  log := app.StringOpt("l log", "", "Log format (%i %t %m %u %s %b %a)")
+  log := app.StringOpt("l log", "%i - %m %u %s", "Log format: %i %t %m %u %s %b %a")
+  quiet := app.BoolOpt("q quiet", false, "Disable logging")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
   app.Version("v version", "sfs " + Version)
@@ -153,6 +154,10 @@ func main() {
     handler := http.FileServer(http.Dir(*dir))
     if !*cache {
       handler = NoCacheServer(handler)
+    }
+
+    if *quiet {
+      *log = ""
     }
 
     if strings.TrimSpace(*log) != "" {

@@ -14,16 +14,17 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 ```
 Usage: sfs [OPTIONS]
 
-Static file server - https://github.com/schmich/sfs
+Static File Server - https://github.com/schmich/sfs
 
 Options:
   -p, --port=8080                        Listening port
   -i, --iface, --interface="127.0.0.1"   Listening interface
-  -s, --secure=false                     Serve via HTTPS with self-signed TLS certificate
+  -s, --secure=false                     Enable HTTPS with self-signed TLS certificate
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -b, --browser=false                    Launch web browser
-  -l, --log=""                           Log format (%i %t %m %u %s %b %a)
+  -l, --log="%i - %m %u %s"              Log format: %i %t %m %u %s %b %a
+  -q, --quiet=false                      Disable logging
   -c, --cache=false                      Allow cached responses
   -v, --version                          Show the version and exit
 ```
