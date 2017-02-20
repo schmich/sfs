@@ -14,7 +14,7 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 ```
 Usage: sfs [OPTIONS]
 
-Static file server - https://github.com/schmich/sfs
+Static File Server - https://github.com/schmich/sfs
 
 Options:
   -p, --port=8080                        Listening port
