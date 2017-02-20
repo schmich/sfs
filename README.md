@@ -2,7 +2,7 @@
 
 A go-based static file web server for serving files from a directory on macOS, Windows, or Linux.
 
-Intended as a lightweight development tool for viewing static sites, e.g. documentation, blogs, diagnostic reports, HTML mockups, and early prototypes.
+Intended as a lightweight development tool for viewing static sites, e.g. documentation, blogs, diagnostic reports, HTML mockups, and prototypes.
 
 ## Install
 
@@ -17,14 +17,15 @@ Usage: sfs [OPTIONS]
 Static file server - https://github.com/schmich/sfs
 
 Options:
-  -v, --version                          Show the version and exit
   -p, --port=8080                        Listening port
   -i, --iface, --interface="127.0.0.1"   Listening interface
+  -s, --secure=false                     Serve via HTTPS with self-signed TLS certificate
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -b, --browser=false                    Launch web browser
   -t, --trace=""                         Trace format (%i %t %m %u %s %b %a)
   -c, --cache=false                      Allow cached responses
+  -v, --version                          Show the version and exit
 ```
 
 Start a web server for files in the current directory and launch the default browser:
@@ -50,6 +51,12 @@ Serve files from another directory:
 
 ```
 sfs -d ../bloop
+```
+
+Serve via HTTPS with a self-signed TLS certificate:
+
+```
+sfs -s
 ```
 
 ## Logging
