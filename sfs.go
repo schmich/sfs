@@ -13,6 +13,8 @@ import (
   "github.com/jawher/mow.cli"
   "github.com/skratchdot/open-golang/open"
   "github.com/mh-cbon/gssc"
+  "github.com/abbot/go-http-auth"
+  "golang.org/x/crypto/ssh/terminal"
 )
 
 type LogResponseWriter struct {
@@ -121,12 +123,46 @@ func NoCacheHandler(h http.Handler) http.Handler {
   })
 }
 
+func AuthHandler(h http.Handler, realm, username, password string) http.Handler {
+  handler := http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+    h.ServeHTTP(w, r)
+  })
+
+  authenticator := auth.NewDigestAuthenticator(realm, func (user, realm string) string {
+    return password
+  })
+
+  authenticator.PlainTextSecrets = true
+
+  return authenticator.Wrap(func (w http.ResponseWriter, r *auth.AuthenticatedRequest) {
+    if (username != "") && (r.Username != username) {
+      authenticator.RequireAuth(w, &r.Request)
+    } else {
+      handler(w, &r.Request)
+    }
+  })
+}
+
+func readPassword(prompt string) string {
+  fmt.Print(prompt)
+  password, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+  fmt.Println()
+  if err != nil {
+    panic(err)
+  }
+  return string(password)
+}
+
 func main() {
   app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
+  app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c]"
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
   secure := app.BoolOpt("s secure", false, "Enable HTTPS with self-signed TLS certificate")
+  auth := app.BoolOpt("a auth", false, "Enable HTTP digest authentication")
+  authUser := app.StringArg("USER", "", "Username for digest authentication")
+  authPass := app.StringArg("PASS", "", "Password for digest authentication")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   browser := app.BoolOpt("b browser", false, "Launch web browser")
@@ -160,17 +196,26 @@ func main() {
       *log = ""
     }
 
+    withAuth := ""
+    if *auth {
+      withAuth = " with digest authentication"
+      if *authPass == "-" {
+        *authPass = readPassword("HTTP digest authentication password? ")
+      }
+      handler = AuthHandler(handler, *iface, *authUser, *authPass)
+    }
+
     if strings.TrimSpace(*log) != "" {
       handler = LogHandler(handler, *log)
     }
 
-    protocol := "HTTP"
+    protocol := "http"
     if *secure {
-      protocol = "HTTPS"
+      protocol = "https"
     }
 
     fmt.Printf(">> Serving %s\n", *dir)
-    fmt.Printf(">> Listening on %s (%s)\n", listen, protocol)
+    fmt.Printf(">> Listening on %s://%s%s\n", protocol, listen, withAuth)
     fmt.Printf(">> Ctrl+C to stop\n")
 
     if *browser {
