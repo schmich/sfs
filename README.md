@@ -6,8 +6,7 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 
 ## Install
 
-- [Download the zero-install binary](https://github.com/schmich/sfs/releases) to a directory on your `PATH`; or
-- `go get -u github.com/schmich/sfs/... && go install github.com/schmich/sfs/...`
+[Download the zero-install binary](https://github.com/schmich/sfs/releases) to a directory on your `PATH`.
 
 ## Usage
 
