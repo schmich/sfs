@@ -1,6 +1,6 @@
 # sfs
 
-A go-based static file web server for serving files from a directory on macOS, Windows, or Linux.
+An HTTP static file web server for serving files from a directory on macOS, Windows, or Linux.
 
 Intended as a lightweight development tool for viewing static sites, e.g. documentation, blogs, diagnostic reports, HTML mockups, and prototypes.
 
