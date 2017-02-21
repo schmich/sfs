@@ -23,7 +23,7 @@ Options:
   -p, --port=8080                        Listening port
   -i, --iface, --interface="127.0.0.1"   Listening interface
   -s, --secure=false                     Enable HTTPS with self-signed TLS certificate
-  -a, --auth=false                       Enable HTTP digest authentication
+  -a, --auth=false                       Enable digest authentication
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -b, --browser=false                    Launch web browser

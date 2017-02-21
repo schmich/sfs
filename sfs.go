@@ -180,7 +180,7 @@ func main() {
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
   secure := app.BoolOpt("s secure", false, "Enable HTTPS with self-signed TLS certificate")
-  auth := app.BoolOpt("a auth", false, "Enable HTTP digest authentication")
+  auth := app.BoolOpt("a auth", false, "Enable digest authentication")
   authUser := app.StringArg("USER", "", "Username for digest authentication")
   authPass := app.StringArg("PASS", "", "Password for digest authentication")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
