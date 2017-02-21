@@ -53,7 +53,7 @@ func formatSize(bytes int) string {
   }
 }
 
-func LogServer(h http.Handler, log string) http.Handler {
+func LogHandler(h http.Handler, log string) http.Handler {
   formatter, _ := regexp.Compile("%.")
 
   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
@@ -112,7 +112,7 @@ func (writer *NoCacheResponseWriter) WriteHeader(statusCode int) {
   writer.impl.WriteHeader(statusCode)
 }
 
-func NoCacheServer(h http.Handler) http.Handler {
+func NoCacheHandler(h http.Handler) http.Handler {
   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
     r.Header.Set("Cache-Control", "no-cache")
     r.Header.Del("If-Modified-Since")
@@ -153,7 +153,7 @@ func main() {
 
     handler := http.FileServer(http.Dir(*dir))
     if !*cache {
-      handler = NoCacheServer(handler)
+      handler = NoCacheHandler(handler)
     }
 
     if *quiet {
@@ -161,7 +161,7 @@ func main() {
     }
 
     if strings.TrimSpace(*log) != "" {
-      handler = LogServer(handler, *log)
+      handler = LogHandler(handler, *log)
     }
 
     protocol := "HTTP"
