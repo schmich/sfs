@@ -1,11 +1,13 @@
 package main
 
 import (
+  "net"
   "os"
   "fmt"
   "time"
   "strconv"
   "strings"
+  "syscall"
   "regexp"
   "net/http"
   "crypto/tls"
@@ -153,6 +155,21 @@ func readPassword(prompt string) string {
   return string(password)
 }
 
+func printError(err error) {
+  if netErr, ok := err.(*net.OpError); ok && netErr.Op == "listen" {
+    if sysErr, ok := netErr.Err.(*os.SyscallError); ok && sysErr.Syscall == "bind" {
+      if errno, ok := sysErr.Err.(syscall.Errno); ok {
+        if errno == syscall.EACCES {
+          fmt.Fprintln(os.Stderr, "Error: Failed to bind to interface. Try running with elevated privileges.")
+          return
+        }
+      }
+    }
+  }
+
+  fmt.Fprintln(os.Stderr, "Error:", err)
+}
+
 func main() {
   app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
   app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c]"
@@ -233,10 +250,13 @@ func main() {
         InsecureSkipVerify: true,
         GetCertificate: gssc.GetCertificate(*iface),
       }
-      panic(server.ListenAndServeTLS("", ""))
+      err = server.ListenAndServeTLS("", "")
     } else {
-      panic(server.ListenAndServe())
+      err = server.ListenAndServe()
     }
+
+    printError(err)
+    os.Exit(1)
   }
 
   app.Run(os.Args)
