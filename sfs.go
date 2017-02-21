@@ -167,7 +167,7 @@ func main() {
   dir := app.StringOpt("d dir directory", ".", "Directory to serve")
   browser := app.BoolOpt("b browser", false, "Launch web browser")
   log := app.StringOpt("l log", "%i - %m %u %s", "Log format: %i %t %m %u %s %b %a")
-  quiet := app.BoolOpt("q quiet", false, "Disable logging")
+  quiet := app.BoolOpt("q quiet", false, "Disable request logging")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
   app.Version("v version", "sfs " + Version)

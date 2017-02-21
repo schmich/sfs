@@ -29,7 +29,7 @@ Options:
   -d, --dir, --directory="."             Directory to serve
   -b, --browser=false                    Launch web browser
   -l, --log="%i - %m %u %s"              Log format: %i %t %m %u %s %b %a
-  -q, --quiet=false                      Disable logging
+  -q, --quiet=false                      Disable request logging
   -c, --cache=false                      Allow cached responses
   -v, --version                          Show the version and exit
 ```
@@ -81,7 +81,7 @@ Enable HTTP digest authentication with a username and password:
 sfs -a gordon p4ssw0rd
 ```
 
-The username is optional, but a password is required. If a username is not specified, any non-empty username will work. A password of `-` will prompt you for the password via stdin:
+Username is optional. Password is required. If a username is not specified, any non-empty username will work. A password of `-` will prompt you for the password via stdin:
 
 ```
 sfs -a -
