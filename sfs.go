@@ -173,6 +173,21 @@ func printError(err error) {
   fmt.Fprintln(os.Stderr, "Error:", err)
 }
 
+func openBrowser(protocol, host string, port int) {
+  portPart := ":" + strconv.Itoa(port)
+  hostPort := "127.0.0.1" + portPart
+  for {
+    _, err := net.Dial("tcp", hostPort)
+    if err == nil {
+      url := protocol + "://" + hostPort
+      open.Start(url)
+      return
+    } else {
+      time.Sleep(250 * time.Millisecond)
+    }
+  }
+}
+
 func main() {
   app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
   app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c]"
@@ -239,8 +254,7 @@ func main() {
     fmt.Printf(">> Ctrl+C to stop\n")
 
     if *browser {
-      url := "http://127.0.0.1" + portPart
-      open.Start(url)
+      go openBrowser(protocol, "127.0.0.1", *port)
     }
 
     server := &http.Server{
