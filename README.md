@@ -34,6 +34,8 @@ Options:
   -v, --version                          Show the version and exit
 ```
 
+## Examples
+
 Start a web server for files in the current directory and launch the default browser:
 
 ```
@@ -59,13 +61,33 @@ Serve files from another directory:
 sfs -d ../bloop
 ```
 
-Serve via HTTPS with a self-signed TLS certificate:
+## Advanced
+
+### HTTPS with SSL/TLS
+
+Serve content via HTTPS with a self-signed TLS certificate:
 
 ```
 sfs -s
 ```
 
-## Logging
+The TLS certificate is randomly generated at startup. Browsers will warn you about an insecure connection since the certificate is self-signed.
+
+### Digest Authentication
+
+Enable HTTP digest authentication with a username and password:
+
+```
+sfs -a gordon p4ssw0rd
+```
+
+The username is optional, but a password is required. If a username is not specified, any non-empty username will work. A password of `-` will prompt you for the password via stdin:
+
+```
+sfs -a -
+```
+
+### Logging
 
 Log requests with `-l`:
 
@@ -84,7 +106,7 @@ Log format:
 - `%b` Response length (bytes)
 - `%a` Request user agent (`User-Agent` HTTP header)
 
-## Caching
+### Caching
 
 By default, `sfs` modifies incoming and outgoing cache headers (`Cache-Control`, `If-None-Match`, `If-Modified-Since`, `Last-Modified`, `ETag`) to ensure no caching occurs. To allow caching, this can be disabled with:
 
