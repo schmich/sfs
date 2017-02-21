@@ -19,6 +19,9 @@ import (
   "golang.org/x/crypto/ssh/terminal"
 )
 
+var version string
+var commit string
+
 type LogResponseWriter struct {
   impl http.ResponseWriter
   bytesWritten int
@@ -187,7 +190,7 @@ func main() {
   quiet := app.BoolOpt("q quiet", false, "Disable request logging")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
 
-  app.Version("v version", "sfs " + Version)
+  app.Version("v version", "sfs " + version + " " + commit)
 
   app.Action = func () {
     var err error
