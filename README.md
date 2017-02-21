@@ -12,14 +12,19 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 ## Usage
 
 ```
-Usage: sfs [OPTIONS]
+Usage: sfs [-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c]
 
 Static File Server - https://github.com/schmich/sfs
+
+Arguments:
+  USER=""      Username for digest authentication
+  PASS=""      Password for digest authentication
 
 Options:
   -p, --port=8080                        Listening port
   -i, --iface, --interface="127.0.0.1"   Listening interface
   -s, --secure=false                     Enable HTTPS with self-signed TLS certificate
+  -a, --auth=false                       Enable HTTP digest authentication
   -g, --global=false                     Listen on all interfaces (overrides -i)
   -d, --dir, --directory="."             Directory to serve
   -b, --browser=false                    Launch web browser
@@ -66,7 +71,7 @@ Log requests with `-l`:
 
 ```bash
 sfs -l "%i - [%t] %m %u %s %b - %a"
-# 127.0.0.1 - [21/Jul/2016:21:07:51 -0500] GET / 200 273 - Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36 
+# 127.0.0.1 - [21/Jul/2016:21:07:51 -0500] GET / 200 273 - Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36
 ```
 
 Log format:
