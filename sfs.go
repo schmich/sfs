@@ -9,7 +9,9 @@ import (
   "strings"
   "syscall"
   "regexp"
+  "net/url"
   "net/http"
+  "net/http/httputil"
   "crypto/tls"
   "path/filepath"
   "github.com/jawher/mow.cli"
@@ -64,9 +66,6 @@ func LogHandler(h http.Handler, log string) http.Handler {
   formatter, _ := regexp.Compile("%.")
 
   return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-    logWriter := NewLogResponseWriter(w)
-    h.ServeHTTP(logWriter, r)
-
     ip := r.RemoteAddr
     if i := strings.Index(ip, ":"); i >= 0 {
       ip = ip[:i]
@@ -76,18 +75,28 @@ func LogHandler(h http.Handler, log string) http.Handler {
       switch string(match[1]) {
       case "i":
         return []byte(ip)
-      case "t":
-        return []byte(time.Now().Format("2/Jan/2006:15:04:05 -0700"))
       case "m":
         return []byte(r.Method)
       case "u":
         return []byte(r.URL.String())
-      case "s":
-        return []byte(strconv.Itoa(logWriter.statusCode))
-      case "b":
-        return []byte(formatSize(logWriter.bytesWritten))
       case "a":
         return []byte(r.Header.Get("User-Agent"))
+      default:
+        return match
+      }
+    }))
+
+    logWriter := NewLogResponseWriter(w)
+    h.ServeHTTP(logWriter, r)
+
+    line = string(formatter.ReplaceAllFunc([]byte(line), func(match []byte) []byte {
+      switch string(match[1]) {
+      case "t":
+        return []byte(time.Now().Format("2/Jan/2006:15:04:05 -0700"))
+      case "b":
+        return []byte(formatSize(logWriter.bytesWritten))
+      case "s":
+        return []byte(strconv.Itoa(logWriter.statusCode))
       case "%":
         return []byte("%")
       default:
@@ -125,6 +134,14 @@ func NoCacheHandler(h http.Handler) http.Handler {
     r.Header.Del("If-Modified-Since")
     r.Header.Del("If-None-Match")
     h.ServeHTTP(&NoCacheResponseWriter{w}, r)
+  })
+}
+
+func ProxyHandler(h http.Handler, url *url.URL) http.Handler {
+  proxy := httputil.NewSingleHostReverseProxy(url)
+
+  return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+    proxy.ServeHTTP(w, r)
   })
 }
 
@@ -190,7 +207,7 @@ func openBrowser(protocol, host string, port int) {
 
 func main() {
   app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
-  app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c]"
+  app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c] [-x=<url>]"
 
   port := app.IntOpt("p port", 8080, "Listening port")
   iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
@@ -199,21 +216,17 @@ func main() {
   authUser := app.StringArg("USER", "", "Username for digest authentication")
   authPass := app.StringArg("PASS", "", "Password for digest authentication")
   allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
-  dir := app.StringOpt("d dir directory", ".", "Directory to serve")
+  dir := app.StringOpt("d dir directory", "", "Directory to serve")
   browser := app.BoolOpt("b browser", false, "Launch web browser")
   log := app.StringOpt("l log", "%i - %m %u %s", "Log format: %i %t %m %u %s %b %a")
   quiet := app.BoolOpt("q quiet", false, "Disable request logging")
   cache := app.BoolOpt("c cache", false, "Allow cached responses")
+  proxy := app.StringOpt("x proxy", "", "Proxy requests to upstream server (implies -c)")
 
   app.Version("v version", "sfs " + version + " " + commit)
 
   app.Action = func () {
     var err error
-
-    *dir, err = filepath.Abs(*dir)
-    if err != nil {
-      panic(err)
-    }
 
     if *allIface {
       *iface = "0.0.0.0"
@@ -222,13 +235,36 @@ func main() {
     portPart := ":" + strconv.Itoa(*port)
     listen := *iface + portPart
 
-    handler := http.FileServer(http.Dir(*dir))
-    if !*cache {
-      handler = NoCacheHandler(handler)
-    }
+    var handler http.Handler
 
-    if *quiet {
-      *log = ""
+    if *proxy == "" {
+      if *dir == "" {
+        *dir = "."
+      }
+
+      *dir, err = filepath.Abs(*dir)
+      if err != nil {
+        panic(err)
+      }
+
+      handler = http.FileServer(http.Dir(*dir))
+      if !*cache {
+        handler = NoCacheHandler(handler)
+      }
+    } else if *dir != "" {
+      fmt.Fprintln(os.Stderr, "Error: --dir is incompatible with --proxy.")
+      os.Exit(1)
+    } else {
+      if !strings.HasPrefix(*proxy, "http://") {
+        *proxy = "http://" + *proxy
+      }
+
+      url, err := url.Parse(*proxy)
+      if err != nil {
+        panic(err)
+      }
+
+      handler = ProxyHandler(handler, url)
     }
 
     withAuth := ""
@@ -240,6 +276,10 @@ func main() {
       handler = AuthHandler(handler, *iface, *authUser, *authPass)
     }
 
+    if *quiet {
+      *log = ""
+    }
+
     if strings.TrimSpace(*log) != "" {
       handler = LogHandler(handler, *log)
     }
@@ -249,7 +289,12 @@ func main() {
       protocol = "https"
     }
 
-    fmt.Printf(">> Serving %s\n", *dir)
+    if *proxy != "" {
+      fmt.Printf(">> Proxying to %s\n", *proxy)
+    } else {
+      fmt.Printf(">> Serving %s\n", *dir)
+    }
+
     fmt.Printf(">> Listening on %s://%s%s\n", protocol, listen, withAuth)
     fmt.Printf(">> Ctrl+C to stop\n")
 
