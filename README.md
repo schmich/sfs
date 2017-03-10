@@ -1,6 +1,6 @@
 # sfs
 
-An HTTP static file web server for serving files from a directory on macOS, Windows, or Linux.
+An HTTP static file web server and proxy for serving files from a directory on macOS, Windows, or Linux.
 
 Intended as a lightweight development tool for viewing static sites, e.g. documentation, blogs, diagnostic reports, HTML mockups, and prototypes.
 
@@ -11,7 +11,7 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 ## Usage
 
 ```
-Usage: sfs [-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c]
+Usage: sfs [-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c] [-x=<url>]
 
 Static File Server - https://github.com/schmich/sfs
 
@@ -25,11 +25,12 @@ Options:
   -s, --secure=false                     Enable HTTPS with self-signed TLS certificate
   -a, --auth=false                       Enable digest authentication
   -g, --global=false                     Listen on all interfaces (overrides -i)
-  -d, --dir, --directory="."             Directory to serve
+  -d, --dir, --directory=""              Directory to serve
   -b, --browser=false                    Launch web browser
   -l, --log="%i - %m %u %s"              Log format: %i %t %m %u %s %b %a
   -q, --quiet=false                      Disable request logging
   -c, --cache=false                      Allow cached responses
+  -x, --proxy=""                         Proxy requests to upstream server (implies -c)
   -v, --version                          Show the version and exit
 ```
 
@@ -84,6 +85,14 @@ Username is optional. Password is required. If a username is not specified, any 
 
 ```
 sfs -a -
+```
+
+### Proxying Requests
+
+`sfs` can act as an HTTP proxy. This is an altogether separate mode of operation from serving static files. This enables you to use `sfs` as a TLS-secured, digest-authenticated, logging frontend for another development server.
+
+```
+sfs -x localhost:4567
 ```
 
 ### Logging
