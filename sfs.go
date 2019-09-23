@@ -67,7 +67,7 @@ func LogHandler(h http.Handler, format string) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip := r.RemoteAddr
-		if i := strings.Index(ip, ":"); i >= 0 {
+		if i := strings.LastIndex(ip, ":"); i >= 0 {
 			ip = ip[:i]
 		}
 
