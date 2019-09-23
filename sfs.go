@@ -62,7 +62,7 @@ func formatSize(bytes int) string {
 	}
 }
 
-func LogHandler(h http.Handler, log string) http.Handler {
+func LogHandler(h http.Handler, format string) http.Handler {
 	formatter, _ := regexp.Compile("%.")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +71,7 @@ func LogHandler(h http.Handler, log string) http.Handler {
 			ip = ip[:i]
 		}
 
-		line := string(formatter.ReplaceAllFunc([]byte(log), func(match []byte) []byte {
+		line := string(formatter.ReplaceAllFunc([]byte(format), func(match []byte) []byte {
 			switch string(match[1]) {
 			case "i":
 				return []byte(ip)
@@ -207,7 +207,7 @@ func openBrowser(protocol, host string, port int) {
 
 func main() {
 	app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
-	app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c] [-x=<url>]"
+	app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-f=<format>] [-q] [-c] [-x=<url>]"
 
 	port := app.IntOpt("p port", 8080, "Listening port")
 	iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
@@ -218,7 +218,7 @@ func main() {
 	allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
 	dir := app.StringOpt("d dir directory", "", "Directory to serve")
 	browser := app.BoolOpt("b browser", false, "Launch web browser")
-	log := app.StringOpt("l log", "%i - %m %u %s", "Log format: %i %t %m %u %s %b %a")
+	logFormat := app.StringOpt("f format", "%i - %m %u %s", "Log format: %i %t %m %u %s %b %a")
 	quiet := app.BoolOpt("q quiet", false, "Disable request logging")
 	cache := app.BoolOpt("c cache", false, "Allow cached responses")
 	proxy := app.StringOpt("x proxy", "", "Proxy requests to upstream server (implies -c)")
@@ -277,11 +277,11 @@ func main() {
 		}
 
 		if *quiet {
-			*log = ""
+			*logFormat = ""
 		}
 
-		if strings.TrimSpace(*log) != "" {
-			handler = LogHandler(handler, *log)
+		if strings.TrimSpace(*logFormat) != "" {
+			handler = LogHandler(handler, *logFormat)
 		}
 
 		protocol := "http"

@@ -11,27 +11,27 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 ## Usage
 
 ```
-Usage: sfs [-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-l=<format>] [-q] [-c] [-x=<url>]
+Usage: sfs [-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-f=<format>] [-q] [-c] [-x=<url>]
 
 Static File Server - https://github.com/schmich/sfs
 
 Arguments:
-  USER=""      Username for digest authentication
-  PASS=""      Password for digest authentication
+  USER            Username for digest authentication
+  PASS            Password for digest authentication
 
 Options:
-  -p, --port=8080                        Listening port
-  -i, --iface, --interface="127.0.0.1"   Listening interface
-  -s, --secure=false                     Enable HTTPS with self-signed TLS certificate
-  -a, --auth=false                       Enable digest authentication
-  -g, --global=false                     Listen on all interfaces (overrides -i)
-  -d, --dir, --directory=""              Directory to serve
-  -b, --browser=false                    Launch web browser
-  -l, --log="%i - %m %u %s"              Log format: %i %t %m %u %s %b %a
-  -q, --quiet=false                      Disable request logging
-  -c, --cache=false                      Allow cached responses
-  -x, --proxy=""                         Proxy requests to upstream server (implies -c)
-  -v, --version                          Show the version and exit
+  -p, --port      Listening port (default 8080)
+  -i, --iface     Listening interface (default "127.0.0.1")
+  -s, --secure    Enable HTTPS with self-signed TLS certificate
+  -a, --auth      Enable digest authentication
+  -g, --global    Listen on all interfaces (overrides -i)
+  -d, --dir       Directory to serve
+  -b, --browser   Launch web browser
+  -f, --format    Log format: %i %t %m %u %s %b %a (default "%i - %m %u %s")
+  -q, --quiet     Disable request logging
+  -c, --cache     Allow cached responses
+  -x, --proxy     Proxy requests to upstream server (implies -c)
+  -v, --version   Show the version and exit
 ```
 
 ## Examples
@@ -97,10 +97,10 @@ sfs -x localhost:4567
 
 ### Logging
 
-Log requests with `-l`:
+Change request logging format with `-f`:
 
 ```bash
-sfs -l "%i - [%t] %m %u %s %b - %a"
+sfs -f "%i - [%t] %m %u %s %b - %a"
 # 127.0.0.1 - [21/Jul/2016:21:07:51 -0500] GET / 200 273 - Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36
 ```
 
@@ -124,5 +124,5 @@ sfs -c
 
 ## License
 
-Copyright &copy; 2016 Chris Schmich  
+Copyright &copy; 2016 Chris Schmich  \
 MIT License. See [LICENSE](LICENSE) for details.
