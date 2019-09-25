@@ -190,13 +190,11 @@ func printError(err error) {
 	fmt.Fprintln(os.Stderr, "Error:", err)
 }
 
-func openBrowser(protocol, host string, port int) {
-	portPart := ":" + strconv.Itoa(port)
-	hostPort := "127.0.0.1" + portPart
+func openBrowser(protocol, host string) {
 	for {
-		_, err := net.Dial("tcp", hostPort)
+		_, err := net.Dial("tcp", host)
 		if err == nil {
-			url := protocol + "://" + hostPort
+			url := protocol + "://" + host
 			open.Start(url)
 			return
 		} else {
@@ -207,17 +205,15 @@ func openBrowser(protocol, host string, port int) {
 
 func main() {
 	app := cli.App("sfs", "Static File Server - https://github.com/schmich/sfs")
-	app.Spec = "[-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-f=<format>] [-q] [-c] [-x=<url>]"
+	app.Spec = "[-l=<ip:port>] [-s] [-a [USER] PASS] [-d=<dir>] [-b] [-f=<format>] [-q] [-c] [-x=<url>]"
 
-	port := app.IntOpt("p port", 8080, "Listening port")
-	iface := app.StringOpt("i iface interface", "127.0.0.1", "Listening interface")
+	address := app.StringOpt("l listen", "127.0.0.1:8080", "IP and port to listen on")
 	secure := app.BoolOpt("s secure", false, "Enable HTTPS with self-signed TLS certificate")
 	auth := app.BoolOpt("a auth", false, "Enable digest authentication")
 	authUser := app.StringArg("USER", "", "Username for digest authentication")
 	authPass := app.StringArg("PASS", "", "Password for digest authentication")
-	allIface := app.BoolOpt("g global", false, "Listen on all interfaces (overrides -i)")
 	dir := app.StringOpt("d dir directory", "", "Directory to serve")
-	browser := app.BoolOpt("b browser", false, "Launch web browser")
+	browser := app.BoolOpt("b browser", false, "Open web browser after server starts")
 	logFormat := app.StringOpt("f format", "%i - %m %u %s", "Log format: %i %t %m %u %s %b %a")
 	quiet := app.BoolOpt("q quiet", false, "Disable request logging")
 	cache := app.BoolOpt("c cache", false, "Allow cached responses")
@@ -227,14 +223,6 @@ func main() {
 
 	app.Action = func() {
 		var err error
-
-		if *allIface {
-			*iface = "0.0.0.0"
-		}
-
-		portPart := ":" + strconv.Itoa(*port)
-		listen := *iface + portPart
-
 		var handler http.Handler
 
 		if *proxy == "" {
@@ -273,7 +261,7 @@ func main() {
 			if *authPass == "-" {
 				*authPass = readPassword("HTTP digest authentication password? ")
 			}
-			handler = AuthHandler(handler, *iface, *authUser, *authPass)
+			handler = AuthHandler(handler, *address, *authUser, *authPass)
 		}
 
 		if *quiet {
@@ -295,22 +283,22 @@ func main() {
 			fmt.Printf(">> Serving %s\n", *dir)
 		}
 
-		fmt.Printf(">> Listening on %s://%s%s\n", protocol, listen, withAuth)
+		fmt.Printf(">> Listening on %s://%s%s\n", protocol, *address, withAuth)
 		fmt.Printf(">> Ctrl+C to stop\n")
 
 		if *browser {
-			go openBrowser(protocol, "127.0.0.1", *port)
+			go openBrowser(protocol, *address)
 		}
 
 		server := &http.Server{
-			Addr:    listen,
+			Addr:    *address,
 			Handler: handler,
 		}
 
 		if *secure {
 			server.TLSConfig = &tls.Config{
 				InsecureSkipVerify: true,
-				GetCertificate:     gssc.GetCertificate(*iface),
+				GetCertificate:     gssc.GetCertificate(*address),
 			}
 			err = server.ListenAndServeTLS("", "")
 		} else {

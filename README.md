@@ -11,7 +11,7 @@ Intended as a lightweight development tool for viewing static sites, e.g. docume
 ## Usage
 
 ```
-Usage: sfs [-p=<port>] [-i=<interface>] [-s] [-a [USER] PASS] [-g] [-d=<dir>] [-b] [-f=<format>] [-q] [-c] [-x=<url>]
+Usage: sfs [-l=<ip:port>] [-s] [-a [USER] PASS] [-d=<dir>] [-b] [-f=<format>] [-q] [-c] [-x=<url>]
 
 Static File Server - https://github.com/schmich/sfs
 
@@ -20,13 +20,11 @@ Arguments:
   PASS            Password for digest authentication
 
 Options:
-  -p, --port      Listening port (default 8080)
-  -i, --iface     Listening interface (default "127.0.0.1")
+  -l, --listen    IP and port to listen on (default "127.0.0.1:8080")
   -s, --secure    Enable HTTPS with self-signed TLS certificate
   -a, --auth      Enable digest authentication
-  -g, --global    Listen on all interfaces (overrides -i)
   -d, --dir       Directory to serve
-  -b, --browser   Launch web browser
+  -b, --browser   Open web browser after server starts
   -f, --format    Log format: %i %t %m %u %s %b %a (default "%i - %m %u %s")
   -q, --quiet     Disable request logging
   -c, --cache     Allow cached responses
@@ -51,8 +49,7 @@ sfs -p 777
 Allow external connections:
 
 ```
-sfs -i 0.0.0.0
-sfs -g
+sfs -l 0.0.0.0
 ```
 
 Serve files from another directory:
