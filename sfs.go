@@ -192,14 +192,15 @@ func printError(err error) {
 
 func openBrowser(protocol, host string) {
 	for {
-		_, err := net.Dial("tcp", host)
+		conn, err := net.Dial("tcp", host)
 		if err == nil {
+			conn.Close()
 			url := protocol + "://" + host
 			open.Start(url)
 			return
-		} else {
-			time.Sleep(250 * time.Millisecond)
 		}
+
+		time.Sleep(250 * time.Millisecond)
 	}
 }
 
